@@ -1,0 +1,24 @@
+{
+  "name": "postgres-banking-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "postgres",
+    "database.dbname": "banking",
+    "database.server.name": "banking_server",
+
+    "slot.name": "debezium",
+    "publication.name": "dbz_publication",
+    "plugin.name": "pgoutput",
+    
+    "topic.prefix": "banking_topic",
+
+    "database.history.kafka.bootstrap.servers": "kafka:9094",
+    "database.history.kafka.topic": "schema-changes.pg"
+  }
+}
+
