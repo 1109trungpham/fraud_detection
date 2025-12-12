@@ -1,20 +1,22 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, IntegerType, LongType, StringType
-from pyspark.sql.functions import when, col, from_json
+from pyspark.sql.functions import when, col, from_json, to_timestamp, from_unixtime
 
-
-spark = SparkSession.builder \
-    .appName("FraudDetection") \
-    .getOrCreate()
+spark = SparkSession.builder.appName("ReadTransactions").getOrCreate()
 
 
 transaction_schema = StructType([
-    StructField("id", IntegerType(), True),
+    StructField("tx_id", LongType(), True),
     StructField("account_id", IntegerType(), True),
-    StructField("amount", LongType(), True),
-    StructField("transaction_type", StringType(), True),
+    StructField("amount", StringType(), True),
+    StructField("currency", StringType(), True),
+    StructField("tx_type", StringType(), True),
+    StructField("merchant", StringType(), True),
+    StructField("device_id", StringType(), True),
+    StructField("ip_address", StringType(), True),
     StructField("location", StringType(), True),
-    StructField("timestamp", LongType(), True)  # MicroTimestamp
+    StructField("status", StringType(), True),
+    StructField("created_at", StringType(), True)
 ])
 
 payload_schema = StructType([
@@ -34,7 +36,7 @@ df_kafka = (
     spark.readStream
         .format("kafka")
         .option("kafka.bootstrap.servers", "kafka:9094")
-        .option("subscribe", "banking_topic.public.bank_transactions")
+        .option("subscribe", "banking_topic_2.public.transactions")
         .option("startingOffsets", "latest")
         .load()
 )
@@ -67,8 +69,14 @@ df_events = (
 )
 
 
+clean_tx = df_events \
+    .withColumn("amount", col("amount").cast("double")) \
+    .withColumn("created_at_ts",
+                to_timestamp( from_unixtime(col("created_at") / 1_000_000) )
+    )
+
 query = (
-    df_events.writeStream
+    clean_tx.writeStream
         .outputMode("append")
         .format("console")
         .option("truncate", False)

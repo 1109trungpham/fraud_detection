@@ -112,6 +112,7 @@ services:
       - "8080:8080"
     volumes:
       - ./spark:/opt/spark/work-dir
+      - ./jars/postgresql.jar:/opt/spark/jars/postgresql.jar
     depends_on:
       - kafka
       - minio
