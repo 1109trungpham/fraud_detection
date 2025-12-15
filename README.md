@@ -1,9 +1,12 @@
 
+# ===================== Phase 1 =====================
 
+```bash
 docker compose up -d
-
 docker exec -it banking_postgres psql -U postgres -d banking
-<!--
+```
+
+```sql
 CREATE TABLE bank_transactions (
     id SERIAL PRIMARY KEY,
     account_id INT NOT NULL,
@@ -15,10 +18,9 @@ CREATE TABLE bank_transactions (
 
 ALTER TABLE bank_transactions
 ALTER COLUMN amount TYPE BIGINT;
+```
 
--->
-
-
+```bash
 curl -X POST http://localhost:8083/connectors \
   -H "Content-Type: application/json" \
   -d @debezium-postgres-connector.json
@@ -26,33 +28,39 @@ curl -X POST http://localhost:8083/connectors \
 curl localhost:8083/connectors/postgres-banking-connector/status | jq
 
 curl -X DELETE http://localhost:8083/connectors/postgres-banking-connector
+```
 
-
+```bash
 docker exec -it kafka bash
 kafka-console-consumer --bootstrap-server kafka:9094 --topic banking_topic.public.bank_transactions --from-beginning
+```
 
+```bash
+docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/fraud_stream.py
+```
+
+```sql
 INSERT INTO bank_transactions(account_id, amount, transaction_type, location)
 VALUES (101, 75000000, 'transfer', 'Hanoi');
 
 INSERT INTO bank_transactions(account_id, amount, transaction_type, location)
 VALUES (101, 50000, 'transfer', 'Hue'), (102, 15000000, 'transfer', 'DaNang');
+```
 
-docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/fraud_stream.py
+# ===================== Phase 2 =====================
 
-
-
-# Phase 2
-
-docker compose up -d
-
-docker exec -it banking_postgres psql -U postgres -d banking
-
-chạy các lệnh tạo bảng (trong postgres/db.sql)
-
-
+```bash
 curl -o postgresql.jar https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.3/postgresql-42.7.3.jar
 mv postgresql.jar jars/postgresql.jar
+```
 
+```bash
+docker compose up -d
+docker exec -it banking_postgres psql -U postgres -d banking
+# -> chạy các lệnh tạo bảng (trong postgres/db.sql)
+```
+
+```bash
 curl -X POST http://localhost:8083/connectors \
   -H "Content-Type: application/json" \
   -d @debezium-postgres-connector-p2.json
@@ -60,21 +68,81 @@ curl -X POST http://localhost:8083/connectors \
 curl localhost:8083/connectors/postgres-banking-connector-2/status | jq
 
 curl -X DELETE http://localhost:8083/connectors/postgres-banking-connector-2
+```
 
-
+```bash
 docker exec -it kafka bash
 kafka-console-consumer --bootstrap-server kafka:9094 --topic banking_topic_2.public.transactions --from-beginning
-kafka-console-consumer --bootstrap-server kafka:9094 --topic banking_topic_2.public.customer --from-beginning
-kafka-console-consumer --bootstrap-server kafka:9094 --topic banking_topic_2.public.login_logs --from-beginning
+```
 
-<!-- kafka-topics --bootstrap-server localhost:9092 --list | grep banking_topic_2 -->
-
-docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/fraud_stream_master.py
+```bash
 docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/read_transactions.py
-docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/read_accounts.py
-docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/read_customer.py
 
 docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/stream_state_builder2.py
 
-
 docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/main_streaming.py
+```
+
+# ===================== Phase 3 (start over) =====================
+
+### Tải jar postgres
+```bash
+curl -o postgresql.jar https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.3/postgresql-42.7.3.jar
+mv postgresql.jar jars/postgresql.jar
+```
+
+### Khởi động hệ thống
+```bash
+docker compose up -d
+```
+
+### Khởi tạo cơ sở dữ liệu
+```bash
+docker exec -it banking_postgres psql -U postgres -d banking
+# -> chạy các lệnh tạo bảng và insert dữ liệu trong postgres/db.sql
+```
+
+### Tạo connect
+```bash
+# Lệnh tạo connect
+curl -X POST http://localhost:8083/connectors \
+  -H "Content-Type: application/json" \
+  -d @debezium-postgres-connector-p3.json
+
+# Lệnh kiểm tra trạng thái connect:
+curl localhost:8083/connectors/cdc-banking-postgres/status | jq
+# Output mong đơi: RUNNING - RUNNING
+
+# Lệnh xoá connect:
+curl -X DELETE http://localhost:8083/connectors/cdc-banking-postgres
+```
+
+Sau khi tạo connect, các kafka topics được tạo ra:
+```
+cdc.banking.public.transactions
+cdc.banking.public.customer
+cdc.banking.public.account
+cdc.banking.public.login_logs
+```
+
+### Tương tác với Kafka:
+```bash
+docker exec -it kafka bash
+
+kafka-topics --bootstrap-server kafka:9094 --list
+
+kafka-console-consumer --bootstrap-server kafka:9094 --topic cdc.banking.public.transactions --from-beginning
+
+kafka-console-consumer --bootstrap-server kafka:9094 --topic transactions_clean --from-beginning
+```
+
+### Tương tác với Spark:
+```bash
+docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/spark_parser.py
+```
+
+### Test
+```sql
+INSERT INTO transactions (account_id, amount, currency, tx_type, merchant, device_id, ip_address, location, status)
+VALUES (1, 1500000, 'VND', 'PAYMENT', 'Shopee', 'DEVICE_A1', '113.23.44.12', 'Hanoi', 'SUCCESS');
+```

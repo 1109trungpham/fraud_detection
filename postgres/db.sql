@@ -14,6 +14,10 @@ CREATE TABLE customer (
     created_at    TIMESTAMP DEFAULT NOW(),
     updated_at    TIMESTAMP DEFAULT NOW()
 );
+-- Spark dùng để enrich thông tin user trong pipeline realtime
+-- Debezium CDC sẽ stream nếu KYC thay đổi (rủi ro thay đổi)
+
+
 -- Trigger tự động cập nhật updated_at
 CREATE OR REPLACE FUNCTION update_timestamp()
 RETURNS TRIGGER AS $$
@@ -39,6 +43,9 @@ CREATE TABLE account (
     created_at    TIMESTAMP DEFAULT NOW(),
     updated_at    TIMESTAMP DEFAULT NOW()
 );
+-- Có trường balance bị update → test Debezium UPDATE event
+-- Có status để mô phỏng hành động của anti-fraud service (freeze account)
+
 
 CREATE TRIGGER trg_account_update
 BEFORE UPDATE ON account
@@ -56,6 +63,11 @@ CREATE TABLE login_logs (
     login_time   TIMESTAMP DEFAULT NOW(),
     success      BOOLEAN
 );
+-- Bạn enrich transaction stream bằng lịch sử đăng nhập
+-- Giúp detect fraud:
+-- login from new device
+-- login from suspicious location
+-- nhiều lần login fail
 
 
 -- =============================== Bảng transactions ===============================
@@ -72,7 +84,13 @@ CREATE TABLE transactions (
     status         VARCHAR(20),     -- PENDING / SUCCESS / FAILED
     created_at     TIMESTAMP DEFAULT NOW()
 );
-
+-- Đây là bảng mà Debezium cần stream liên tục → Spark xử lý realtime
+-- Create nhiều giả lập giao dịch → pipeline chạy thật sự realtime
+-- IP, location giúp bạn detect fraud:
+-- Location jump
+-- New device
+-- Suspicious IP
+-- Amount spikes
 
 
 -- =============================================================================

@@ -113,6 +113,10 @@ services:
     volumes:
       - ./spark:/opt/spark/work-dir
       - ./jars/postgresql.jar:/opt/spark/jars/postgresql.jar
+      - ./lake/raw/transactions:/lake/raw/transactions
+      - ./checkpoints/tx_clean_lake:/opt/spark/checkpoints/tx_clean_lake
+      - ./checkpoints/tx_clean_kafka:/opt/spark/checkpoints/tx_clean_kafka
+
     depends_on:
       - kafka
       - minio

@@ -1,0 +1,38 @@
+{
+  "name": "cdc-banking-postgres",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "postgres",
+    "database.dbname": "banking",
+
+    "database.server.name": "banking-postgres",
+
+    "plugin.name": "pgoutput",
+    "slot.name": "banking_cdc_slot",
+    "publication.name": "banking_cdc_pub",
+
+    "topic.prefix": "cdc.banking",
+
+    "database.history.kafka.bootstrap.servers": "kafka:9094",
+    "database.history.kafka.topic": "cdc.banking.schema-changes",
+
+    "table.include.list": "public.transactions,public.customer,public.account,public.login_logs",
+
+    "tombstones.on.delete": "false",
+    "delete.handling.mode": "rewrite",
+
+    "decimal.handling.mode": "string",
+    "include.schema.changes": "false",
+
+    "slot.drop.on.stop": "false",
+
+    "max.batch.size": "2048",
+    "max.queue.size": "8192",
+    "poll.interval.ms": "100"
+  }
+}

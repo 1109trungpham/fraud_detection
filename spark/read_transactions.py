@@ -71,9 +71,7 @@ df_events = (
 
 clean_tx = df_events \
     .withColumn("amount", col("amount").cast("double")) \
-    .withColumn("created_at_ts",
-                to_timestamp( from_unixtime(col("created_at") / 1_000_000) )
-    )
+    .withColumn("created_at_ts", to_timestamp( from_unixtime(col("created_at") / 1_000_000) ))
 
 query = (
     clean_tx.writeStream

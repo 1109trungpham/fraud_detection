@@ -1,1 +1,17 @@
 venv
+checkpoints
+jar
+lake
+spark/src/
+spark/fraud_stream.py
+spark/main_streaming.py
+spark/read_accounts.py
+spark/read_customer.py
+spark/read_transactions.py
+spark/stream_state_builder2.py
+
+test
+debezium-postgres-connector.json
+debezium-postgres-connector-p2.json
+event_result.json
+.DS_Store
