@@ -99,38 +99,38 @@ CREATE TABLE transactions (
 
 INSERT INTO customer (full_name, date_of_birth, phone, email, address, risk_level)
 VALUES
-('Nguyen Van A', '1990-05-12', '0901234567', 'a@example.com', 'Hanoi', 'LOW'),
-('Tran Thi B', '1985-02-20', '0912345678', 'b@example.com', 'HCMC', 'MEDIUM'),
-('Le Van C', '1998-09-15', '0931239999', 'c@example.com', 'Da Nang', 'LOW'),
-('Pham Thi D', '1975-12-01', '0977778888', 'd@example.com', 'Hai Phong', 'HIGH');
+('Pham Ba Trung', '1999-11-09', '0935251234', '1109trungpham@example.com', 'Hue', 'LOW'),
+('Phan Thi Dieu Linh', '1999-08-30', '0909111113', 'linhphan3008@example.com', 'HCMC', 'MEDIUM'),
+('Pham Tuam', '1999-11-05', '0909111111', 'erictuan511@example.com', 'Da Nang', 'LOW'),
+('Ho Nhu Ngoc', '1999-11-30', '0909111112', 'nhungoc3011@example.com', 'Ha Noi', 'HIGH');
 
 
 INSERT INTO account (customer_id, account_type, balance, status)
 VALUES
-(1, 'SAVINGS', 12000000, 'ACTIVE'),
-(1, 'WALLET', 500000, 'ACTIVE'),
-(2, 'SAVINGS', 85000000, 'ACTIVE'),
-(2, 'CARD', 2000000, 'ACTIVE'),
-(3, 'SAVINGS', 15000000, 'ACTIVE'),
-(4, 'CARD', 3000000, 'ACTIVE');
+(1, 'SAVINGS', 21000, 'ACTIVE'),
+(1, 'WALLET', 5000, 'ACTIVE'),
+(2, 'SAVINGS', 35000, 'ACTIVE'),
+(2, 'CARD', 10000, 'ACTIVE'),
+(3, 'SAVINGS', 40000, 'ACTIVE'),
+(4, 'CARD', 15000, 'ACTIVE');
 
 
 INSERT INTO login_logs (customer_id, ip_address, location, device_id, success)
 VALUES
 -- User 1: hành vi bình thường
-(1, '113.23.44.12', 'Hanoi', 'DEVICE_A1', true),
-(1, '113.23.44.12', 'Hanoi', 'DEVICE_A1', true),
+(1, '113.23.44.12', 'Hue', 'DEVICE_A1', true),
+(1, '113.23.44.12', 'Hue', 'DEVICE_A1', true),
 -- User 2: đăng nhập từ IP lạ
-(2, '52.12.99.44', 'Singapore', 'DEVICE_B1', true),
-(2, '52.12.99.44', 'Singapore', 'DEVICE_B1', false),
+(2, '52.12.99.44', 'HCMC', 'DEVICE_B1', true),
+(2, '52.12.99.44', 'HCMC', 'DEVICE_B1', false),
 (2, '14.162.22.33', 'HCMC', 'DEVICE_B1', true),
 -- User 3: đăng nhập từ thiết bị mới
 (3, '113.18.44.99', 'Da Nang', 'DEVICE_C1', true),
 (3, '192.168.1.88', 'Unknown', 'NEW_DEVICE_X', true),
 -- User 4: nhiều lần login fail
-(4, '113.55.12.77', 'Hai Phong', 'DEVICE_D1', false),
-(4, '113.55.12.77', 'Hai Phong', 'DEVICE_D1', false),
-(4, '113.55.12.77', 'Hai Phong', 'DEVICE_D1', true);
+(4, '113.55.12.77', 'Ha Noi', 'DEVICE_D1', false),
+(4, '113.55.12.77', 'Ha Noi', 'DEVICE_D1', false),
+(4, '113.55.12.77', 'Ha Noi', 'DEVICE_D1', true);
 
 
 
@@ -139,8 +139,8 @@ INSERT INTO transactions (
     device_id, ip_address, location, status
 )
 VALUES
-(1, 1500000, 'VND', 'PAYMENT', 'Shopee', 'DEVICE_A1', '113.23.44.12', 'Hanoi', 'SUCCESS'),
-(1, 2500000, 'VND', 'TRANSFER', 'MB Bank', 'DEVICE_A1', '113.23.44.12', 'Hanoi', 'SUCCESS');
+(1, 500, 'VND', 'PAYMENT', 'Shopee', 'DEVICE_A1', '113.23.44.12', 'Hue', 'SUCCESS'),
+(1, 1000, 'VND', 'TRANSFER', 'MB Bank', 'DEVICE_A1', '113.23.44.12', 'Hue', 'SUCCESS');
 
 
 -- Case 1 — Amount Spike (giao dịch lớn bất thường)

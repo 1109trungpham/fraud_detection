@@ -116,6 +116,9 @@ services:
       - ./lake/raw/transactions:/lake/raw/transactions
       - ./checkpoints/tx_clean_lake:/opt/spark/checkpoints/tx_clean_lake
       - ./checkpoints/tx_clean_kafka:/opt/spark/checkpoints/tx_clean_kafka
+      - ./checkpoints/account_dim:/opt/spark/checkpoints/account_dim
+      - ./checkpoints/customer_dim:/opt/spark/checkpoints/customer_dim
+      - ./checkpoints/tx_enriched:/opt/spark/checkpoints/tx_enriched
 
     depends_on:
       - kafka

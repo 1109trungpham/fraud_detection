@@ -111,7 +111,7 @@ curl -X POST http://localhost:8083/connectors \
 
 # Lệnh kiểm tra trạng thái connect:
 curl localhost:8083/connectors/cdc-banking-postgres/status | jq
-# Output mong đơi: RUNNING - RUNNING
+# Output mong đợi: RUNNING - RUNNING
 
 # Lệnh xoá connect:
 curl -X DELETE http://localhost:8083/connectors/cdc-banking-postgres
@@ -145,4 +145,39 @@ docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/spark_pars
 ```sql
 INSERT INTO transactions (account_id, amount, currency, tx_type, merchant, device_id, ip_address, location, status)
 VALUES (1, 1500000, 'VND', 'PAYMENT', 'Shopee', 'DEVICE_A1', '113.23.44.12', 'Hanoi', 'SUCCESS');
+```
+
+
+# ===================== Phase 4 (Enrichment) =====================
+
+```bash
+docker exec -it banking_postgres psql -U postgres -d banking
+```
+```bash
+docker exec -it kafka bash
+kafka-console-consumer --bootstrap-server kafka:9094 --topic customer_dim_state --from-beginning
+kafka-console-consumer --bootstrap-server kafka:9094 --topic account_dim_state --from-beginning
+```
+```bash
+docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/state_builder_customer.py
+docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/state_builder_account.py
+```
+
+
+```bash
+docker exec -it kafka bash
+kafka-console-consumer --bootstrap-server kafka:9094 --topic transactions_enriched --from-beginning
+```
+
+```bash
+docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/transaction_enricher.py
+```
+
+```sql
+INSERT INTO transactions (
+    account_id, amount, currency, tx_type, merchant,
+    device_id, ip_address, location, status
+)
+VALUES
+(15, 4000, 'VND', 'TRANSFER', 'MB Bank', 'DEVICE_A1', '113.23.44.12', 'Hue', 'SUCCESS');
 ```

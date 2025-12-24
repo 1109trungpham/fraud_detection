@@ -1,6 +1,6 @@
 venv
 checkpoints
-jar
+jars
 lake
 spark/src/
 spark/fraud_stream.py
