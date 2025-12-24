@@ -181,3 +181,45 @@ INSERT INTO transactions (
 VALUES
 (15, 4000, 'VND', 'TRANSFER', 'MB Bank', 'DEVICE_A1', '113.23.44.12', 'Hue', 'SUCCESS');
 ```
+
+# ===================== Phase 4 (Enrichment version 2) =====================
+
+```bash
+docker exec -it banking_postgres psql -U postgres -d banking
+```
+
+```bash
+docker exec -it kafka bash
+kafka-console-consumer --bootstrap-server kafka:9094 --topic transactions_enriched
+```
+
+```bash
+docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/spark_clean.py
+
+docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/state_builder_customer_v2.py
+docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/state_builder_account_v2.py
+
+docker exec -it spark /opt/spark/bin/spark-submit /opt/spark/work-dir/transaction_enricher_v2.py
+```
+
+
+```sql
+-- Chạy các lệnh sau để thấy Enrichment Streaming Job đã bắt được hot state từ Redis:
+
+INSERT INTO transactions (account_id, amount, currency, tx_type, merchant, device_id, ip_address, location, status)
+VALUES (27, 900, 'VND', 'TRANSFER', 'TechcomBank', 'DEVICE_A1', '113.23.44.12', 'Hue', 'SUCCESS');
+
+UPDATE customer
+SET risk_level='LOW'
+WHERE customer_id=10;
+
+INSERT INTO transactions (account_id, amount, currency, tx_type, merchant, device_id, ip_address, location, status)
+VALUES (27, 100, 'VND', 'TRANSFER', 'TechcomBank', 'DEVICE_A1', '113.23.44.12', 'Hue', 'SUCCESS');
+
+UPDATE account
+SET status='FROZEN'
+WHERE account_id=27;
+
+INSERT INTO transactions (account_id, amount, currency, tx_type, merchant, device_id, ip_address, location, status)
+VALUES (27, 100, 'VND', 'TRANSFER', 'TechcomBank', 'DEVICE_A1', '113.23.44.12', 'Hue', 'SUCCESS');
+```

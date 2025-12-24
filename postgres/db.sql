@@ -101,7 +101,7 @@ INSERT INTO customer (full_name, date_of_birth, phone, email, address, risk_leve
 VALUES
 ('Pham Ba Trung', '1999-11-09', '0935251234', '1109trungpham@example.com', 'Hue', 'LOW'),
 ('Phan Thi Dieu Linh', '1999-08-30', '0909111113', 'linhphan3008@example.com', 'HCMC', 'MEDIUM'),
-('Pham Tuam', '1999-11-05', '0909111111', 'erictuan511@example.com', 'Da Nang', 'LOW'),
+('Pham Tuan', '1999-11-05', '0909111111', 'erictuan511@example.com', 'Da Nang', 'LOW'),
 ('Ho Nhu Ngoc', '1999-11-30', '0909111112', 'nhungoc3011@example.com', 'Ha Noi', 'HIGH');
 
 

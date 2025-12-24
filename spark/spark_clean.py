@@ -3,7 +3,7 @@ from pyspark.sql.types import (StructType, StructField,
                                LongType, IntegerType, StringType)
 from pyspark.sql.functions import when, col, lit, from_json, current_timestamp, to_date, to_timestamp, from_unixtime
 
-spark = SparkSession.builder.appName("Spark_Parser").getOrCreate()
+spark = SparkSession.builder.appName("Spark_Clean").getOrCreate()
 
 
 transaction_schema = StructType([

@@ -84,18 +84,18 @@ services:
   # ===========================================================
   # MinIO (Data Lake)
   # ===========================================================
-  minio:
-    image: minio/minio:latest
-    container_name: minio
-    command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000"  # S3 API
-      - "9001:9001"  # MinIO console
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: adminadmin
-    volumes:
-      - minio_data:/data
+  # minio:
+  #   image: minio/minio:latest
+  #   container_name: minio
+  #   command: server /data --console-address ":9001"
+  #   ports:
+  #     - "9000:9000"  # S3 API
+  #     - "9001:9001"  # MinIO console
+  #   environment:
+  #     MINIO_ROOT_USER: admin
+  #     MINIO_ROOT_PASSWORD: adminadmin
+  #   volumes:
+  #     - minio_data:/data
 
   # ===========================================================
   # Spark (for streaming job)
@@ -117,14 +117,42 @@ services:
       - ./checkpoints/tx_clean_lake:/opt/spark/checkpoints/tx_clean_lake
       - ./checkpoints/tx_clean_kafka:/opt/spark/checkpoints/tx_clean_kafka
       - ./checkpoints/account_dim:/opt/spark/checkpoints/account_dim
+      - ./checkpoints/account_dim_v2:/opt/spark/checkpoints/account_dim_v2
       - ./checkpoints/customer_dim:/opt/spark/checkpoints/customer_dim
+      - ./checkpoints/customer_dim_v2:/opt/spark/checkpoints/customer_dim_v2
       - ./checkpoints/tx_enriched:/opt/spark/checkpoints/tx_enriched
+      - ./checkpoints/tx_enriched_redis:/opt/spark/checkpoints/tx_enriched_redis
 
     depends_on:
       - kafka
-      - minio
+      # - minio
+
+  # ===========================================================
+  # Redis (Hot Storage for Enrichment)
+  # ===========================================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes  # Bật AOF để không mất dữ liệu khi restart
+    volumes:
+      - redis_data:/data
+
+  # ===========================================================
+  # Redis Insight (Giao diện quản lý Redis - Tùy chọn)
+  # ===========================================================
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis_insight
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis
 
 volumes:
   banking_pg_data:
   kafka_data:
-  minio_data:
+  # minio_data:
+  redis_data:
