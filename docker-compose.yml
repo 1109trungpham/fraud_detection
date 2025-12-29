@@ -113,14 +113,12 @@ services:
     volumes:
       - ./spark:/opt/spark/work-dir
       - ./jars/postgresql.jar:/opt/spark/jars/postgresql.jar
-      - ./lake/raw/transactions:/lake/raw/transactions
       - ./checkpoints/tx_clean_lake:/opt/spark/checkpoints/tx_clean_lake
       - ./checkpoints/tx_clean_kafka:/opt/spark/checkpoints/tx_clean_kafka
+      - ./lake/raw/transactions:/lake/raw/transactions
       - ./checkpoints/account_dim:/opt/spark/checkpoints/account_dim
-      - ./checkpoints/account_dim_v2:/opt/spark/checkpoints/account_dim_v2
       - ./checkpoints/customer_dim:/opt/spark/checkpoints/customer_dim
-      - ./checkpoints/customer_dim_v2:/opt/spark/checkpoints/customer_dim_v2
-      - ./checkpoints/tx_enriched:/opt/spark/checkpoints/tx_enriched
+      - ./checkpoints/behavior_updater:/opt/spark/checkpoints/behavior_updater
       - ./checkpoints/tx_enriched_redis:/opt/spark/checkpoints/tx_enriched_redis
 
     depends_on:

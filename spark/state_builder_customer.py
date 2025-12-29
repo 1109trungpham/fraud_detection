@@ -1,9 +1,9 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.types import (StructType, StructField,
-                               LongType, IntegerType, StringType)
-from pyspark.sql.functions import col, when, from_json, to_json, struct, lit, current_timestamp, to_timestamp
+from pyspark.sql.types import StructType, StructField, LongType, IntegerType, StringType
+from pyspark.sql.functions import col, when, from_json, to_json, struct, to_timestamp
+import redis
 
-spark = SparkSession.builder.appName("State_Accounts").getOrCreate()
+spark = SparkSession.builder.appName("state_customers").getOrCreate()
 
 
 customer_schema = StructType([
@@ -26,7 +26,7 @@ payload_schema = StructType([
 ])
 
 debezium_schema = StructType([
-    StructField("schema", StringType(), True),  # không dùng
+    StructField("schema", StringType(), True),  
     StructField("payload", payload_schema, True)
 ])
 
@@ -66,10 +66,30 @@ df_customer_state = (
     )
 )
 
+
+def write_to_kafka_and_redis(batch_df, batch_id):
+    # 1. Ghi vào Kafka (Source of Truth)
+    batch_df.write \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", "kafka:9094") \
+        .option("topic", "customer_dim_state") \
+        .save()
+
+    # 2. Ghi vào Redis (High-speed Lookup)
+    def send_to_redis(partition):
+        # Kết nối Redis tại mỗi Partition để tối ưu
+        r = redis.Redis(host='redis', port=6379, db=0)
+        pipe = r.pipeline()
+        for row in partition:
+            # Lưu key theo format "cus:{id}"
+            pipe.set(f"cus:{row.key}", row.value)
+        pipe.execute()
+
+    batch_df.foreachPartition(send_to_redis)
+
+
 query = df_customer_state.writeStream \
-    .format("kafka") \
-    .option("kafka.bootstrap.servers", "kafka:9094") \
-    .option("topic", "customer_dim_state") \
+    .foreachBatch(write_to_kafka_and_redis) \
     .option("checkpointLocation", "/opt/spark/checkpoints/customer_dim") \
     .start()
 

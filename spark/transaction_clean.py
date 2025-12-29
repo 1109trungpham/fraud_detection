@@ -3,7 +3,7 @@ from pyspark.sql.types import (StructType, StructField,
                                LongType, IntegerType, StringType)
 from pyspark.sql.functions import when, col, lit, from_json, current_timestamp, to_date, to_timestamp, from_unixtime
 
-spark = SparkSession.builder.appName("Spark_Clean").getOrCreate()
+spark = SparkSession.builder.appName("transaction_clean").getOrCreate()
 
 
 transaction_schema = StructType([
@@ -101,18 +101,32 @@ df_final = (
     .withColumn("event_date", to_date(col("event_time")))
     .select(
             # Thông tin giao dịch
-            "tx_id", "account_id", "amount", "currency", "tx_type", 
-            "merchant", "device_id", "ip_address", "location", "status",
+            "tx_id",
+            "account_id",
+            "amount",
+            "currency",
+            "tx_type", 
+            "merchant",
+            "device_id",
+            "ip_address",
+            "location",
+            "status",
             
             # Thông tin sự kiện/Thời gian
-            "event_type", "event_time", "event_date", "ingest_time", "is_deleted",
+            "event_type",
+            "event_time",
+            "event_date",
+            "ingest_time",
+            "is_deleted",
             
             # Metadata CDC
-            "cdc_source", "table", "lsn"
+            "cdc_source",
+            "table",
+            "lsn"
     )
 )
 
-# Write Kafka + Lake
+# Write Kafka
 query_kafka = df_final.selectExpr("CAST(tx_id AS STRING) AS key", "to_json(struct(*)) AS value") \
     .writeStream.format("kafka") \
     .option("kafka.bootstrap.servers", "kafka:9094") \
@@ -121,7 +135,7 @@ query_kafka = df_final.selectExpr("CAST(tx_id AS STRING) AS key", "to_json(struc
     .start()
 
 
-# Data lake (audit)
+# Write Lake (audit)
 query_lake = df_final.writeStream.format("parquet") \
     .outputMode("append") \
     .option("path", "/lake/raw/transactions") \
